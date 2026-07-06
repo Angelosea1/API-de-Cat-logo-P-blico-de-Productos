@@ -3,6 +3,8 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import helmet from 'helmet';
 
+import productoRoutes from './modules/producto/producto.routes.js';
+
 dotenv.config();
 
 const app = express();
@@ -10,7 +12,8 @@ const app = express();
 app.use(helmet());
 app.use(express.json());
 
-// Ruta base
+// Rutas
+app.use('/api/v1/productos', productoRoutes);
 app.get('/', (req, res) => res.send('API de Catálogo Público de Productos'));
 
 const PORT = process.env.PORT || 5200;
