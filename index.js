@@ -14,14 +14,41 @@ app.use(express.json());
 
 // Rutas
 app.use('/api/v1/productos', productoRoutes);
-app.get('/', (req, res) => res.send('API de Catálogo Público de Productos'));
+app.get('/', (req, res) => res.json({ message: 'API de Catálogo Público de Productos activa ✅' }));
 
-const PORT = process.env.PORT || 5200;
+// --- Conexión a MongoDB con caché para entornos serverless ---
+let isConnected = false;
 
-// Conexión a MongoDB Atlas
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => {
-    console.log('¡Conectado exitosamente a MongoDB Atlas (Catálogo Público)!');
-    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-  })
-  .catch(err => console.error('Error al conectar a MongoDB Atlas:', err));
+async function connectDB() {
+  if (isConnected) return;
+
+  const uri = process.env.MONGO_URI;
+  if (!uri) {
+    throw new Error('MONGO_URI no está definida en las variables de entorno.');
+  }
+
+  await mongoose.connect(uri);
+  isConnected = true;
+  console.log('Conectado a MongoDB Atlas (Catálogo Público)');
+}
+
+// Middleware que conecta a DB antes de cada request (serverless-safe)
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    console.error('Error de conexión a MongoDB:', err.message);
+    res.status(500).json({ error: 'Error de conexión a la base de datos' });
+  }
+});
+
+// Para ejecución local (no en Vercel)
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 5200;
+  connectDB().then(() => {
+    app.listen(PORT, () => console.log(`Servidor local en puerto ${PORT}`));
+  });
+}
+
+export default app;
