@@ -1,9 +1,29 @@
 import Producto from './Producto.model.js';
 
-// GET /api/v1/productos — Obtener todos los productos
+// GET /api/v1/productos — Obtener todos los productos con soporte para búsqueda y filtrado
 export const getProductos = async (req, res) => {
   try {
-    const productos = await Producto.find();
+    const { minPrecio, maxPrecio, buscar, categoria } = req.query;
+    const filter = {};
+
+    if (minPrecio !== undefined || maxPrecio !== undefined) {
+      filter.precio = {};
+      if (minPrecio !== undefined) filter.precio.$gte = Number(minPrecio);
+      if (maxPrecio !== undefined) filter.precio.$lte = Number(maxPrecio);
+    }
+
+    if (categoria) {
+      filter.categoria = categoria;
+    }
+
+    if (buscar) {
+      filter.$or = [
+        { nombre: { $regex: buscar, $options: 'i' } },
+        { descripcion: { $regex: buscar, $options: 'i' } },
+      ];
+    }
+
+    const productos = await Producto.find(filter);
     res.json(productos);
   } catch (error) {
     res.status(500).json({ error: 'Error al obtener los productos' });

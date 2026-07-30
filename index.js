@@ -2,6 +2,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import helmet from 'helmet';
+import mongoSanitize from 'express-mongo-sanitize';
 
 import productoRoutes from './modules/producto/producto.routes.js';
 
@@ -11,6 +12,7 @@ const app = express();
 
 app.use(helmet());
 app.use(express.json());
+app.use(mongoSanitize());
 
 // --- Conexión a MongoDB con caché para entornos serverless ---
 let isConnected = false;
