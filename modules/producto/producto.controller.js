@@ -1,9 +1,9 @@
 import Producto from './Producto.model.js';
 
-// GET /api/v1/productos — Obtener todos los productos con soporte para búsqueda y filtrado
+// GET /api/v1/productos — Obtener todos los productos con soporte para búsqueda, filtrado y ordenación
 export const getProductos = async (req, res) => {
   try {
-    const { minPrecio, maxPrecio, buscar, categoria } = req.query;
+    const { minPrecio, maxPrecio, buscar, categoria, orden } = req.query;
     const filter = {};
 
     if (minPrecio !== undefined || maxPrecio !== undefined) {
@@ -23,7 +23,16 @@ export const getProductos = async (req, res) => {
       ];
     }
 
-    const productos = await Producto.find(filter);
+    let query = Producto.find(filter);
+
+    if (orden) {
+      if (orden === 'precio_asc' || orden === 'asc') query = query.sort({ precio: 1 });
+      else if (orden === 'precio_desc' || orden === 'desc') query = query.sort({ precio: -1 });
+      else if (orden === 'nombre_asc') query = query.sort({ nombre: 1 });
+      else if (orden === 'nombre_desc') query = query.sort({ nombre: -1 });
+    }
+
+    const productos = await query;
     res.json(productos);
   } catch (error) {
     res.status(500).json({ error: 'Error al obtener los productos' });

@@ -36,6 +36,10 @@ export const validateGetProductos = [
     .optional()
     .trim()
     .escape(),
+  query('orden')
+    .optional()
+    .isIn(['precio_asc', 'precio_desc', 'nombre_asc', 'nombre_desc', 'asc', 'desc'])
+    .withMessage('orden debe ser uno de: precio_asc, precio_desc, nombre_asc, nombre_desc, asc, desc'),
 ];
 
 /**
